@@ -184,7 +184,7 @@ export default function PosBillingPage() {
     const mode = overridePaymentMode || paymentMode;
 
     const payload = {
-      branchId: activeBranch?.id || 'br_01',
+      branchId: activeBranch?.id || null,
       customerName: customerName.trim() || 'Parent / Cash Customer',
       studentName: studentName.trim(),
       studentGrade: studentGrade.trim(),
@@ -236,7 +236,7 @@ export default function PosBillingPage() {
             Cashier POS Counter Billing
           </h1>
           <div className="text-xs text-[#78716C] mt-0.5 flex items-center gap-2">
-            <span>Counter: <strong className="text-[#1C1917]">{activeBranch?.name || 'Default Counter'}</strong> ({activeBranch?.code})</span>
+            <span>Counter: <strong className="text-[#1C1917]">{activeBranch?.name || 'Main Counter'}</strong> {activeBranch?.code ? `(${activeBranch.code})` : ''}</span>
             <span>•</span>
             <span className="text-[#15803D] font-bold">● Standalone LLP Billing Terminal</span>
           </div>
@@ -649,9 +649,9 @@ export default function PosBillingPage() {
         onClose={() => setIsUpiQrOpen(false)}
         onConfirmPayment={() => handleCompleteSale('UPI')}
         amount={grandTotal}
-        invoiceNo={activeBranch ? `${llpProfile?.invoicePrefix || 'MART'}/${activeBranch.code}` : 'MART'}
-        upiId={llpProfile?.upiId || 'vidyamart@icici'}
-        payeeName={llpProfile?.tradeName || 'Campus Mart'}
+        invoiceNo={activeBranch ? `${llpProfile?.invoicePrefix || 'INV'}/${activeBranch.code}` : (llpProfile?.invoicePrefix || 'INV')}
+        upiId={llpProfile?.upiVpa || llpProfile?.upiId || ''}
+        payeeName={llpProfile?.brandName || llpProfile?.entityName || 'LLP Store'}
       />
 
       {/* Thermal / A4 Printable Receipt Modal */}

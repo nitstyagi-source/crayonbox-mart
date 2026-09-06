@@ -25,17 +25,19 @@ export async function POST(req: Request) {
       await writeDataAsync('branches.json', branches);
     }
     
-    const prefix = profile.invoicePrefix || 'MART';
+    const prefix = profile.invoicePrefix || 'INV';
     const now = new Date();
     const yy = now.getFullYear().toString().slice(-2);
     const nyy = (now.getFullYear() + 1).toString().slice(-2);
-    const invoiceNumber = `${prefix}/${branchCode}/${yy}-${nyy}/${counter.toString().padStart(4, '0')}`;
+    const invoiceNumber = branch 
+      ? `${prefix}/${branchCode}/${yy}-${nyy}/${counter.toString().padStart(4, '0')}`
+      : `${prefix}/${yy}-${nyy}/${Date.now().toString().slice(-4)}`;
     
     const newInvoice = {
       id: `inv_${Date.now()}`,
       invoiceNumber,
-      branchId: body.branchId,
-      branchName: branch?.name || 'Campus Counter',
+      branchId: body.branchId || null,
+      branchName: branch?.name || 'Main Counter',
       date: new Date().toISOString(),
       customerName: body.customerName || 'Parent / Walk-in',
       customerPhone: body.customerPhone || '',

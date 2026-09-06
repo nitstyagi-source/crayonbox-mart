@@ -55,17 +55,29 @@ export default function UpiQrModal({
         </div>
 
         <div className="flex justify-center p-3 bg-[#FAF7F2] rounded-2xl border border-[#E8DFC8] my-3">
-          {qrDataUrl ? (
-            <img src={qrDataUrl} alt="UPI QR" className="w-48 h-48 rounded-lg shadow-2xs" />
+          {upiId ? (
+            qrDataUrl ? (
+              <img src={qrDataUrl} alt="UPI QR" className="w-48 h-48 rounded-lg shadow-2xs" />
+            ) : (
+              <div className="w-48 h-48 flex items-center justify-center text-xs text-[#78716C]">Generating QR...</div>
+            )
           ) : (
-            <div className="w-48 h-48 flex items-center justify-center text-xs text-[#78716C]">Generating QR...</div>
+            <div className="w-48 h-48 flex flex-col items-center justify-center text-center p-3 text-xs text-amber-800 bg-amber-50 rounded-xl border border-amber-200">
+              <QrCode className="w-8 h-8 text-amber-600 mb-2 opacity-60" />
+              <div className="font-bold">UPI Not Configured</div>
+              <div className="text-[10px] text-stone-500 mt-1">
+                Configure your store UPI VPA under <span className="font-semibold text-amber-900">LLP Settings</span> to accept direct QR payments.
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="text-[11px] text-[#44403C] space-y-1 mb-4">
-          <div>UPI VPA: <span className="font-mono font-bold text-[#0284C7]">{upiId}</span></div>
-          <div>Payee: <span className="font-bold text-[#1C1917]">{payeeName}</span></div>
-        </div>
+        {upiId && (
+          <div className="text-[11px] text-[#44403C] space-y-1 mb-4">
+            <div>UPI VPA: <span className="font-mono font-bold text-[#0284C7]">{upiId}</span></div>
+            {payeeName && <div>Payee: <span className="font-bold text-[#1C1917]">{payeeName}</span></div>}
+          </div>
+        )}
 
         <button
           onClick={onConfirmPayment}

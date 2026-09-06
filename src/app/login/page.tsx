@@ -68,10 +68,10 @@ export default function MartLoginPage() {
             <ShoppingBag className="w-7 h-7" />
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
-            Crayon Box School Store
+            LLP Store Terminal
           </h1>
           <p className="text-xs font-semibold text-stone-500">
-            Commercial Books, Uniforms &amp; Counter POS Terminal
+            Commercial Uniforms, Books &amp; Retail POS System
           </p>
         </div>
 
@@ -88,12 +88,12 @@ export default function MartLoginPage() {
           
           <div className="space-y-1">
             <label className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
-              Staff Email / Mobile
+              Staff Mobile or Email
             </label>
             <div className="relative">
               <input
                 type="text"
-                placeholder="e.g. 9811443321 or staff@..."
+                placeholder="Enter registered mobile or email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 disabled={isLoading}
@@ -147,40 +147,16 @@ export default function MartLoginPage() {
           </button>
         </form>
 
-        {/* Roles Hint / Demo Helper Box */}
-        <div className="pt-4 border-t border-[#E8DFC8] space-y-2 text-xs">
-          <div className="flex items-center justify-between text-[11px] text-stone-500 font-semibold">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Counter Staff Credentials:
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <button
-              type="button"
-              onClick={() => { setIdentifier('9811443321'); setPassword('Cashier@123'); }}
-              className="p-2 bg-stone-50 hover:bg-sky-50 border border-stone-200 rounded-xl text-left transition cursor-pointer"
-            >
-              <div className="font-bold text-sky-800">Counter Cashier</div>
-              <div className="text-[10px] text-stone-500">POS Billing Only</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setIdentifier('admin@crayonboxschool.com'); setPassword('Admin@123'); }}
-              className="p-2 bg-stone-50 hover:bg-emerald-50 border border-stone-200 rounded-xl text-left transition cursor-pointer"
-            >
-              <div className="font-bold text-emerald-800">Store Manager</div>
-              <div className="text-[10px] text-stone-500">Full Catalog &amp; Stock</div>
-            </button>
-          </div>
+        {/* Security & Role Information */}
+        <div className="pt-3 border-t border-[#E8DFC8] flex items-center justify-center gap-1.5 text-stone-500 text-xs font-semibold text-center">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Role-Based Access: Counter Cashier, Manager &amp; Super Admin</span>
         </div>
 
       </div>
 
       <div className="mt-6 text-center text-xs text-stone-400 font-medium">
-        &copy; {new Date().getFullYear()} Crayon Box Mart Enterprises LLP &bull; Protected Counter Terminal
+        &copy; {new Date().getFullYear()} LLP Store &bull; Secure Counter POS System
       </div>
 
     </div>

@@ -55,7 +55,7 @@ export default function UsersPage() {
     email: '',
     password: '',
     role: 'CASHIER' as 'SUPER_ADMIN' | 'MANAGER' | 'CASHIER',
-    branchId: 'br_01'
+    branchId: ''
   });
   const [newPassword, setNewPassword] = useState('');
   const [showPasswordText, setShowPasswordText] = useState(false);
@@ -133,7 +133,7 @@ export default function UsersPage() {
           email: '',
           password: '',
           role: 'CASHIER',
-          branchId: branches[0]?.id || 'br_01'
+          branchId: branches[0]?.id || ''
         });
         fetchUsers();
       } else {
@@ -654,11 +654,15 @@ export default function UsersPage() {
                   onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFC8] bg-[#FAF7F2] text-sm text-[#1C1917] focus:outline-none focus:border-[#D97706] focus:bg-white transition cursor-pointer"
                 >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.code})
-                    </option>
-                  ))}
+                  {branches.length === 0 ? (
+                    <option value="">Main Counter (No branches created yet)</option>
+                  ) : (
+                    branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 

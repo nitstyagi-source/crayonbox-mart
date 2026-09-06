@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       maxAge: thirtyDays
     });
 
-    response.cookies.set('mart_branch_id', user.branch_id || 'br_01', {
+    response.cookies.set('mart_branch_id', user.branch_id || '', {
       path: '/',
       secure: isProduction,
       sameSite: 'lax',

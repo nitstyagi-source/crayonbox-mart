@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       cleanPhone,
       passHash,
       userRole,
-      branchId || 'br_01',
+      branchId || null,
       true
     ]);
 
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         email: cleanEmail,
         phone: cleanPhone,
         role: userRole,
-        branchId: branchId || 'br_01',
+        branchId: branchId || null,
         active: true
       }
     });

@@ -18,7 +18,8 @@ export default function ThermalReceipt({ isOpen, onClose, invoice, llpProfile }:
   };
 
   const handleWhatsAppShare = () => {
-    const text = `*Tax Invoice from ${llpProfile?.tradeName || 'Mart'}*\nInvoice: ${invoice.invoiceNumber}\nStudent: ${invoice.studentName || 'Student'} (${invoice.studentGrade || ''})\nTotal Amount: ₹${invoice.totalAmount}\nStatus: Paid via ${invoice.paymentMode}\nThank you!`;
+    const storeTitle = llpProfile?.brandName || llpProfile?.entityName || 'LLP Store';
+    const text = `*Tax Invoice from ${storeTitle}*\nInvoice: ${invoice.invoiceNumber}\nStudent: ${invoice.studentName || 'Student'} (${invoice.studentGrade || ''})\nTotal Amount: ₹${invoice.totalAmount}\nStatus: Paid via ${invoice.paymentMode}\nThank you!`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -56,11 +57,11 @@ export default function ThermalReceipt({ isOpen, onClose, invoice, llpProfile }:
           {/* Header */}
           <div className="text-center pb-2 border-b border-dashed border-[#78716C]/40">
             <div className="font-black text-sm uppercase tracking-wide text-[#1C1917]">
-              {llpProfile?.tradeName || llpProfile?.name || 'TAX INVOICE'}
+              {llpProfile?.brandName || llpProfile?.entityName || 'LLP STORE'}
             </div>
-            {llpProfile?.name && llpProfile?.name !== llpProfile?.tradeName && (
+            {llpProfile?.entityName && llpProfile?.entityName !== llpProfile?.brandName && (
               <div className="text-[11px] font-bold text-[#44403C]">
-                {llpProfile.name}
+                {llpProfile.entityName}
               </div>
             )}
             {llpProfile?.llpin && (

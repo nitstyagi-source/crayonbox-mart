@@ -247,7 +247,7 @@ export default function BranchesPage() {
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. North Wing Mart or City Campus"
+                  placeholder="e.g. Main Counter or Campus Branch"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0284C7]"
                 />
               </div>

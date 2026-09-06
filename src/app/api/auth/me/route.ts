@@ -17,7 +17,7 @@ export async function GET() {
     user: {
       name: name || 'Staff Member',
       role: role || 'CASHIER',
-      branchId: branchId || 'br_01'
+      branchId: branchId || null
     }
   });
 }

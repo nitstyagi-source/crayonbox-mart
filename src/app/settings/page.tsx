@@ -28,7 +28,7 @@ export default function SettingsPage() {
     ifscCode: '',
     receiptHeader: '',
     terms: '',
-    invoicePrefix: 'MART'
+    invoicePrefix: 'INV'
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -137,7 +137,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-[11px] font-bold text-[#44403C] uppercase mb-1">
-                  Trade / Mart Brand Name *
+                  Trade / Store Brand Name *
                 </label>
                 <input
                   type="text"
@@ -145,7 +145,7 @@ export default function SettingsPage() {
                   value={profile.tradeName || ''}
                   onChange={handleChange}
                   required
-                  placeholder="e.g. Campus Uniform & Book Mart"
+                  placeholder="e.g. Campus Store or City Supplies"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
@@ -235,7 +235,7 @@ export default function SettingsPage() {
                   name="upiId"
                   value={profile.upiId || ''}
                   onChange={handleChange}
-                  placeholder="e.g. vidyamart@icici"
+                  placeholder="e.g. yourstore@okaxis"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl text-xs font-semibold font-mono text-[#0284C7] focus:outline-none focus:border-[#0284C7]"
                 />
                 <span className="text-[10px] text-[#78716C]">POS terminal will generate live QR codes for this ID.</span>
@@ -302,7 +302,7 @@ export default function SettingsPage() {
                   name="email"
                   value={profile.email || ''}
                   onChange={handleChange}
-                  placeholder="supplies@mart.com"
+                  placeholder="billing@yourstore.com"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl text-xs font-semibold focus:outline-none focus:border-[#0284C7]"
                 />
               </div>
@@ -325,12 +325,12 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     name="invoicePrefix"
-                    value={profile.invoicePrefix || 'MART'}
+                    value={profile.invoicePrefix || 'INV'}
                     onChange={handleChange}
-                    placeholder="e.g. MART or UNIFORM"
+                    placeholder="e.g. INV or STORE"
                     className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl text-xs font-bold font-mono focus:outline-none focus:border-[#0284C7]"
                   />
-                  <span className="text-[10px] text-[#78716C]">Invoices will format as {profile.invoicePrefix || 'MART'}/[BRANCH]/26-27/0001</span>
+                  <span className="text-[10px] text-[#78716C]">Invoices will format as {profile.invoicePrefix || 'INV'}/[BRANCH]/26-27/0001</span>
                 </div>
 
                 <div>
@@ -389,7 +389,7 @@ export default function SettingsPage() {
             {/* Store Header */}
             <div className="text-center pb-2 border-b border-dashed border-[#78716C]/40">
               <div className="font-black text-sm uppercase text-[#1C1917]">
-                {profile.tradeName || profile.name || '[Your Trade / Mart Name]'}
+                {profile.tradeName || profile.name || '[Your Store / Business Name]'}
               </div>
               {profile.name && profile.name !== profile.tradeName && (
                 <div className="text-[11px] font-bold text-[#44403C]">

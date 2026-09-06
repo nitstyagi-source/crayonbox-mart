@@ -3,8 +3,8 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Commercial Retail & Staff Salary ERP',
-  description: 'Independent Multi-Branch Retail & Staff Salary ERP for Commercial Entities',
+  title: 'LLP Store - Point of Sale & Inventory',
+  description: 'Independent Multi-Branch POS Billing & Inventory System for Commercial LLP Entities',
 };
 
 export default function RootLayout({

@@ -104,15 +104,15 @@ export default function Navbar() {
             </div>
             <div>
               <a href="/" className="font-extrabold text-[#1C1917] text-base leading-tight block hover:text-[#0284C7] transition">
-                {llpProfile?.brandName || llpProfile?.entityName || 'Crayon Box School Store'}
+                {llpProfile?.brandName || 'LLP Store'}
               </a>
               <span className="text-[11px] text-[#78716C] font-semibold flex items-center gap-1.5">
-                <span>{llpProfile?.entityName || 'LLP Commercial Entity'}</span>
-                {llpProfile?.gstin && (
+                <span>{llpProfile?.entityName || 'Commercial LLP Entity'}</span>
+                {llpProfile?.gstin ? (
                   <span className="bg-[#FAF7F2] border border-[#E8DFC8] text-[9px] px-1.5 py-0.2 rounded font-mono">
                     GST: {llpProfile.gstin}
                   </span>
-                )}
+                ) : null}
               </span>
             </div>
           </div>
@@ -142,26 +142,44 @@ export default function Navbar() {
           {/* Dynamic Branch Switcher + User Role Badge + Logout */}
           <div className="flex items-center gap-2">
             
-            {/* Counter Branch Dropdown (Manager can switch, Cashier sees assigned) */}
-            <div className="flex items-center bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl px-2.5 py-1.5">
-              <Building2 className="w-3.5 h-3.5 text-[#D97706] mr-2 shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-[9px] font-bold text-[#78716C] uppercase tracking-wider">Active Counter</span>
-                <select
-                  value={selectedBranchId}
-                  onChange={handleBranchChange}
-                  disabled={isCashier}
-                  className="bg-transparent text-xs font-extrabold text-[#1C1917] focus:outline-none cursor-pointer pr-3"
+            {/* Counter Branch Dropdown or + Add Branch */}
+            {branches.length === 0 ? (
+              !isCashier ? (
+                <a
+                  href="/branches"
+                  className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 rounded-xl px-2.5 py-1.5 text-xs font-bold transition shadow-2xs"
+                  title="Configure your first branch counter"
                 >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.code})
-                    </option>
-                  ))}
-                  {!isCashier && <option value="all">All Branches (Overview)</option>}
-                </select>
+                  <Building2 className="w-3.5 h-3.5 text-amber-600" />
+                  <span>+ Add Branch</span>
+                </a>
+              ) : (
+                <div className="flex items-center bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#44403C]">
+                  <Building2 className="w-3.5 h-3.5 text-[#D97706] mr-1.5" />
+                  <span>Main Store</span>
+                </div>
+              )
+            ) : (
+              <div className="flex items-center bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl px-2.5 py-1.5">
+                <Building2 className="w-3.5 h-3.5 text-[#D97706] mr-2 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-[#78716C] uppercase tracking-wider">Active Counter</span>
+                  <select
+                    value={selectedBranchId}
+                    onChange={handleBranchChange}
+                    disabled={isCashier}
+                    className="bg-transparent text-xs font-extrabold text-[#1C1917] focus:outline-none cursor-pointer pr-3"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </option>
+                    ))}
+                    {!isCashier && <option value="all">All Branches (Overview)</option>}
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Staff Role Badge */}
             {currentUser && (
