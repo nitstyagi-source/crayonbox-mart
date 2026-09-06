@@ -13,7 +13,8 @@ import {
   Store,
   LogOut,
   UserCheck,
-  ShieldCheck
+  ShieldCheck,
+  Truck
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -80,6 +81,7 @@ export default function Navbar() {
   const allNavLinks = [
     { href: '/', label: 'POS Billing', icon: ShoppingCart, roles: ['CASHIER', 'MANAGER', 'SUPER_ADMIN'] },
     { href: '/invoices', label: 'Invoices', icon: FileText, roles: ['CASHIER', 'MANAGER', 'SUPER_ADMIN'] },
+    { href: '/purchases', label: 'Purchase Bills', icon: Truck, roles: ['MANAGER', 'SUPER_ADMIN'] },
     { href: '/catalog', label: 'Uniforms & Books', icon: Package, roles: ['MANAGER', 'SUPER_ADMIN'] },
     { href: '/inventory', label: 'Stock Levels', icon: Layers, roles: ['MANAGER', 'SUPER_ADMIN'] },
     { href: '/users', label: 'Staff Accounts', icon: ShieldCheck, roles: ['SUPER_ADMIN'] },

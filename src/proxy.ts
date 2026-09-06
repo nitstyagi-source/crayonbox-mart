@@ -27,7 +27,7 @@ export function proxy(request: NextRequest) {
   // 3. RBAC Enforcement:
   // Role: CASHIER - can only access POS (/) and Invoices (/invoices)
   if (role === 'CASHIER') {
-    const restrictedForCashier = ['/users', '/inventory', '/catalog', '/branches', '/payroll', '/settings'];
+    const restrictedForCashier = ['/users', '/purchases', '/inventory', '/catalog', '/branches', '/payroll', '/settings'];
     if (restrictedForCashier.some(route => url.pathname.startsWith(route))) {
       const posUrl = new URL('/', request.url);
       posUrl.searchParams.set('error', 'cashier_restricted');
