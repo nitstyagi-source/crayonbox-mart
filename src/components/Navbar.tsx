@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { 
   ShoppingCart, 
@@ -11,8 +10,10 @@ import {
   Settings, 
   FileText, 
   Layers,
-  ChevronDown,
-  Store
+  Store,
+  LogOut,
+  UserCheck,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -20,13 +21,24 @@ export default function Navbar() {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [llpProfile, setLlpProfile] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
+    // Check current auth
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(console.error);
+
     fetch('/api/branches')
       .then(res => res.json())
       .then(data => {
-        setBranches(data);
-        if (data.length > 0 && !selectedBranchId) {
+        setBranches(data || []);
+        if (data && data.length > 0 && !selectedBranchId) {
           const saved = localStorage.getItem('active_branch_id');
           const valid = data.find((b: any) => b.id === saved);
           const initial = valid ? valid.id : data[0].id;
@@ -42,6 +54,10 @@ export default function Navbar() {
       .catch(console.error);
   }, []);
 
+  if (pathname === '/login') {
+    return null;
+  }
+
   const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setSelectedBranchId(val);
@@ -49,15 +65,30 @@ export default function Navbar() {
     window.dispatchEvent(new Event('branchChanged'));
   };
 
-  const navLinks = [
-    { href: '/', label: 'POS Billing', icon: ShoppingCart },
-    { href: '/catalog', label: 'Uniforms & Books', icon: Package },
-    { href: '/inventory', label: 'Stock Levels', icon: Layers },
-    { href: '/payroll', label: 'Staff & Salary', icon: Users },
-    { href: '/invoices', label: 'Invoices', icon: FileText },
-    { href: '/branches', label: 'Branches', icon: Building2 },
-    { href: '/settings', label: 'LLP Settings', icon: Settings },
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/login';
+    } catch {
+      window.location.href = '/login';
+    }
+  };
+
+  const isCashier = currentUser?.role === 'CASHIER';
+
+  const allNavLinks = [
+    { href: '/', label: 'POS Billing', icon: ShoppingCart, roles: ['CASHIER', 'MANAGER'] },
+    { href: '/invoices', label: 'Invoices', icon: FileText, roles: ['CASHIER', 'MANAGER'] },
+    { href: '/catalog', label: 'Uniforms & Books', icon: Package, roles: ['MANAGER'] },
+    { href: '/inventory', label: 'Stock Levels', icon: Layers, roles: ['MANAGER'] },
+    { href: '/payroll', label: 'Staff & Salary', icon: Users, roles: ['MANAGER'] },
+    { href: '/branches', label: 'Branches', icon: Building2, roles: ['MANAGER'] },
+    { href: '/settings', label: 'LLP Settings', icon: Settings, roles: ['MANAGER'] },
   ];
+
+  const visibleLinks = allNavLinks.filter(l => 
+    !currentUser || l.roles.includes(currentUser.role || 'CASHIER')
+  );
 
   return (
     <header className="no-print bg-[#FFFFFF] border-b border-[#E8DFC8] sticky top-0 z-40 shadow-xs">
@@ -71,10 +102,10 @@ export default function Navbar() {
             </div>
             <div>
               <a href="/" className="font-extrabold text-[#1C1917] text-base leading-tight block hover:text-[#0284C7] transition">
-                {llpProfile?.tradeName || llpProfile?.name || 'Commercial Billing ERP'}
+                {llpProfile?.brandName || llpProfile?.entityName || 'Crayon Box School Store'}
               </a>
               <span className="text-[11px] text-[#78716C] font-semibold flex items-center gap-1.5">
-                <span>{llpProfile?.name || 'LLP Commercial Entity'}</span>
+                <span>{llpProfile?.entityName || 'LLP Commercial Entity'}</span>
                 {llpProfile?.gstin && (
                   <span className="bg-[#FAF7F2] border border-[#E8DFC8] text-[9px] px-1.5 py-0.2 rounded font-mono">
                     GST: {llpProfile.gstin}
@@ -86,7 +117,7 @@ export default function Navbar() {
 
           {/* Nav Links */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((item) => {
+            {visibleLinks.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
@@ -106,8 +137,10 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Dynamic Branch Switcher */}
+          {/* Dynamic Branch Switcher + User Role Badge + Logout */}
           <div className="flex items-center gap-2">
+            
+            {/* Counter Branch Dropdown (Manager can switch, Cashier sees assigned) */}
             <div className="flex items-center bg-[#FAF7F2] border border-[#E8DFC8] rounded-xl px-2.5 py-1.5">
               <Building2 className="w-3.5 h-3.5 text-[#D97706] mr-2 shrink-0" />
               <div className="flex flex-col">
@@ -115,20 +148,43 @@ export default function Navbar() {
                 <select
                   value={selectedBranchId}
                   onChange={handleBranchChange}
-                  className="bg-transparent text-xs font-extrabold text-[#1C1917] focus:outline-none cursor-pointer pr-4"
+                  disabled={isCashier}
+                  className="bg-transparent text-xs font-extrabold text-[#1C1917] focus:outline-none cursor-pointer pr-3"
                 >
-                  {branches.length === 0 && (
-                    <option value="">No Branches Added</option>
-                  )}
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name} ({b.code})
                     </option>
                   ))}
-                  {branches.length > 0 && <option value="all">All Branches (Overview)</option>}
+                  {!isCashier && <option value="all">All Branches (Overview)</option>}
                 </select>
               </div>
             </div>
+
+            {/* Staff Role Badge */}
+            {currentUser && (
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs">
+                {isCashier ? (
+                  <UserCheck className="w-3.5 h-3.5 text-sky-600" />
+                ) : (
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                )}
+                <div className="text-left">
+                  <div className="font-bold text-slate-800 text-[11px] leading-tight truncate max-w-[100px]">{currentUser.name}</div>
+                  <div className="text-[9px] font-medium text-slate-500 uppercase">{currentUser.role}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-xl bg-stone-100 hover:bg-rose-50 text-stone-600 hover:text-rose-600 border border-stone-200 hover:border-rose-200 transition cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+
           </div>
 
         </div>
