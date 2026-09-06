@@ -24,15 +24,27 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3. RBAC Enforcement: Cashier Role Sandboxing
+  // 3. RBAC Enforcement:
+  // Role: CASHIER - can only access POS (/) and Invoices (/invoices)
   if (role === 'CASHIER') {
-    const managerOnlyRoutes = ['/inventory', '/catalog', '/branches', '/payroll', '/settings'];
-    if (managerOnlyRoutes.some(route => url.pathname.startsWith(route))) {
+    const restrictedForCashier = ['/users', '/inventory', '/catalog', '/branches', '/payroll', '/settings'];
+    if (restrictedForCashier.some(route => url.pathname.startsWith(route))) {
       const posUrl = new URL('/', request.url);
       posUrl.searchParams.set('error', 'cashier_restricted');
       return NextResponse.redirect(posUrl);
     }
   }
+
+  // Role: MANAGER - can access all operational routes except Super Admin User Management (/users)
+  if (role === 'MANAGER') {
+    if (url.pathname.startsWith('/users')) {
+      const homeUrl = new URL('/', request.url);
+      homeUrl.searchParams.set('error', 'admin_only');
+      return NextResponse.redirect(homeUrl);
+    }
+  }
+
+  // SUPER_ADMIN has unrestricted access to all routes including /users
 
   return NextResponse.next();
 }

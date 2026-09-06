@@ -75,15 +75,17 @@ export default function Navbar() {
   };
 
   const isCashier = currentUser?.role === 'CASHIER';
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
 
   const allNavLinks = [
-    { href: '/', label: 'POS Billing', icon: ShoppingCart, roles: ['CASHIER', 'MANAGER'] },
-    { href: '/invoices', label: 'Invoices', icon: FileText, roles: ['CASHIER', 'MANAGER'] },
-    { href: '/catalog', label: 'Uniforms & Books', icon: Package, roles: ['MANAGER'] },
-    { href: '/inventory', label: 'Stock Levels', icon: Layers, roles: ['MANAGER'] },
-    { href: '/payroll', label: 'Staff & Salary', icon: Users, roles: ['MANAGER'] },
-    { href: '/branches', label: 'Branches', icon: Building2, roles: ['MANAGER'] },
-    { href: '/settings', label: 'LLP Settings', icon: Settings, roles: ['MANAGER'] },
+    { href: '/', label: 'POS Billing', icon: ShoppingCart, roles: ['CASHIER', 'MANAGER', 'SUPER_ADMIN'] },
+    { href: '/invoices', label: 'Invoices', icon: FileText, roles: ['CASHIER', 'MANAGER', 'SUPER_ADMIN'] },
+    { href: '/catalog', label: 'Uniforms & Books', icon: Package, roles: ['MANAGER', 'SUPER_ADMIN'] },
+    { href: '/inventory', label: 'Stock Levels', icon: Layers, roles: ['MANAGER', 'SUPER_ADMIN'] },
+    { href: '/users', label: 'Staff Accounts', icon: ShieldCheck, roles: ['SUPER_ADMIN'] },
+    { href: '/payroll', label: 'Staff & Salary', icon: Users, roles: ['MANAGER', 'SUPER_ADMIN'] },
+    { href: '/branches', label: 'Branches', icon: Building2, roles: ['MANAGER', 'SUPER_ADMIN'] },
+    { href: '/settings', label: 'LLP Settings', icon: Settings, roles: ['MANAGER', 'SUPER_ADMIN'] },
   ];
 
   const visibleLinks = allNavLinks.filter(l => 
@@ -163,15 +165,25 @@ export default function Navbar() {
 
             {/* Staff Role Badge */}
             {currentUser && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs">
-                {isCashier ? (
+              <div className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs ${
+                isSuperAdmin
+                  ? 'border-purple-200 bg-purple-50/80 text-purple-900'
+                  : isCashier
+                  ? 'border-sky-200 bg-sky-50/80 text-sky-900'
+                  : 'border-emerald-200 bg-emerald-50/80 text-emerald-900'
+              }`}>
+                {isSuperAdmin ? (
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                ) : isCashier ? (
                   <UserCheck className="w-3.5 h-3.5 text-sky-600" />
                 ) : (
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 )}
                 <div className="text-left">
-                  <div className="font-bold text-slate-800 text-[11px] leading-tight truncate max-w-[100px]">{currentUser.name}</div>
-                  <div className="text-[9px] font-medium text-slate-500 uppercase">{currentUser.role}</div>
+                  <div className="font-bold text-[11px] leading-tight truncate max-w-[100px]">{currentUser.name}</div>
+                  <div className="text-[9px] font-semibold opacity-75 uppercase tracking-wider">
+                    {currentUser.role === 'SUPER_ADMIN' ? 'Super Admin' : currentUser.role === 'MANAGER' ? 'Manager' : 'Cashier'}
+                  </div>
                 </div>
               </div>
             )}
