@@ -17,7 +17,11 @@ import {
   Layers,
   UserCheck,
   GraduationCap,
-  User
+  User,
+  Clock,
+  Phone,
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 import ThermalReceipt from '@/components/ThermalReceipt';
 import UpiQrModal from '@/components/UpiQrModal';
@@ -34,12 +38,18 @@ export default function PosBillingPage() {
   const [cart, setCart] = useState<any[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({});
   const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
   const [studentName, setStudentName] = useState<string>('');
   const [studentGrade, setStudentGrade] = useState<string>('');
   const [studentAdmNo, setStudentAdmNo] = useState<string>('');
   const [discount, setDiscount] = useState<number>(0);
   const [paymentMode, setPaymentMode] = useState<string>('UPI');
   const [cashTendered, setCashTendered] = useState<number>(0);
+
+  // Partial Payment State
+  const [partialAmountPaid, setPartialAmountPaid] = useState<number>(0);
+  const [partialChannel, setPartialChannel] = useState<'Cash' | 'UPI' | 'Card'>('Cash');
+  const [dueDate, setDueDate] = useState<string>('');
 
   // Modals & Feedback
   const [lastInvoice, setLastInvoice] = useState<any>(null);
@@ -83,6 +93,9 @@ export default function PosBillingPage() {
     setStudentGrade(std.grade || '');
     if (std.fatherName) {
       setCustomerName(std.fatherName);
+    }
+    if (std.phone || std.mobile || std.fatherPhone || std.parentPhone) {
+      setCustomerPhone(std.phone || std.mobile || std.fatherPhone || std.parentPhone);
     }
     setShowStudentDropdown(false);
   };
@@ -182,10 +195,24 @@ export default function PosBillingPage() {
 
     setIsProcessing(true);
     const mode = overridePaymentMode || paymentMode;
+    const isPartial = mode === 'Partial';
+    const amountPaid = isPartial 
+      ? Math.min(grandTotal, Math.max(0, Number(partialAmountPaid) || 0))
+      : (mode === 'Cash' ? Math.min(grandTotal, Number(cashTendered) || grandTotal) : grandTotal);
+    const balanceDue = Math.max(0, grandTotal - amountPaid);
+    const status = balanceDue <= 0 ? 'Completed' : (amountPaid > 0 ? 'Partial' : 'Unpaid');
+    const finalPaymentMode = isPartial ? `Partial (${partialChannel})` : mode;
+
+    if (isPartial && balanceDue > 0 && !customerPhone.trim()) {
+      alert('Please enter a Customer / Parent Mobile Number so the store can track the outstanding balance due.');
+      setIsProcessing(false);
+      return;
+    }
 
     const payload = {
       branchId: activeBranch?.id || null,
-      customerName: customerName.trim() || 'Parent / Cash Customer',
+      customerName: customerName.trim() || 'Parent / Walk-in Customer',
+      customerPhone: customerPhone.trim(),
       studentName: studentName.trim(),
       studentGrade: studentGrade.trim(),
       studentAdmNo: studentAdmNo.trim(),
@@ -194,8 +221,12 @@ export default function PosBillingPage() {
       taxAmount,
       discount: Number(discount) || 0,
       totalAmount: grandTotal,
-      paymentMode: mode,
-      cashReceived: mode === 'Cash' ? cashTendered : grandTotal,
+      amountPaid,
+      balanceDue,
+      status,
+      dueDate: dueDate || null,
+      paymentMode: finalPaymentMode,
+      cashReceived: mode === 'Cash' ? cashTendered : amountPaid,
       changeGiven: mode === 'Cash' ? changeDue : 0
     };
 
@@ -210,12 +241,16 @@ export default function PosBillingPage() {
         setLastInvoice(data.invoice);
         setIsReceiptOpen(true);
         setIsUpiQrOpen(false);
-        // Clear Cart
+        // Clear Cart & inputs
         setCart([]);
         setStudentName('');
         setStudentAdmNo('');
+        setCustomerName('');
+        setCustomerPhone('');
         setDiscount(0);
         setCashTendered(0);
+        setPartialAmountPaid(0);
+        setDueDate('');
       }
     } catch (err) {
       console.error(err);
@@ -472,6 +507,16 @@ export default function PosBillingPage() {
                 className="px-2.5 py-1 bg-white border border-[#E8DFC8] rounded-lg text-xs font-semibold focus:outline-none focus:border-[#0284C7]"
               />
             </div>
+
+            <div>
+              <input
+                type="tel"
+                placeholder="Customer / Parent Mobile # (Required for Partial / Due)"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                className="w-full px-2.5 py-1 bg-white border border-[#E8DFC8] rounded-lg text-xs font-semibold focus:outline-none focus:border-[#0284C7]"
+              />
+            </div>
           </div>
 
           {/* Cart Items List */}
@@ -550,15 +595,23 @@ export default function PosBillingPage() {
 
           {/* Payment Mode Selector */}
           <div className="pt-2 border-t border-[#E8DFC8]">
-            <span className="text-[10px] font-bold text-[#78716C] uppercase block mb-1.5">Payment Mode</span>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-bold text-[#78716C] uppercase">Payment Mode</span>
+              {paymentMode === 'Partial' && (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  Partial / Due Bill
+                </span>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-4 gap-1.5">
               <button
                 type="button"
                 onClick={() => setPaymentMode('UPI')}
                 className={`py-2 rounded-xl text-xs font-bold border flex flex-col items-center gap-1 transition ${
                   paymentMode === 'UPI'
-                    ? 'bg-[#EFF6FF] text-[#0284C7] border-[#0284C7]'
-                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8]'
+                    ? 'bg-[#EFF6FF] text-[#0284C7] border-[#0284C7] ring-1 ring-[#0284C7]'
+                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8] hover:bg-sky-50/50'
                 }`}
               >
                 <QrCode className="w-4 h-4" />
@@ -570,8 +623,8 @@ export default function PosBillingPage() {
                 onClick={() => setPaymentMode('Cash')}
                 className={`py-2 rounded-xl text-xs font-bold border flex flex-col items-center gap-1 transition ${
                   paymentMode === 'Cash'
-                    ? 'bg-[#DCFCE7] text-[#15803D] border-[#15803D]'
-                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8]'
+                    ? 'bg-[#DCFCE7] text-[#15803D] border-[#15803D] ring-1 ring-[#15803D]'
+                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8] hover:bg-emerald-50/50'
                 }`}
               >
                 <Banknote className="w-4 h-4" />
@@ -583,12 +636,30 @@ export default function PosBillingPage() {
                 onClick={() => setPaymentMode('Card')}
                 className={`py-2 rounded-xl text-xs font-bold border flex flex-col items-center gap-1 transition ${
                   paymentMode === 'Card'
-                    ? 'bg-[#FEF3C7] text-[#D97706] border-[#D97706]'
-                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8]'
+                    ? 'bg-[#FEF3C7] text-[#D97706] border-[#D97706] ring-1 ring-[#D97706]'
+                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8] hover:bg-amber-50/50'
                 }`}
               >
                 <CreditCard className="w-4 h-4" />
-                POS Card
+                Card
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentMode('Partial');
+                  if (partialAmountPaid === 0) {
+                    setPartialAmountPaid(Math.round(grandTotal / 2));
+                  }
+                }}
+                className={`py-2 rounded-xl text-xs font-bold border flex flex-col items-center gap-1 transition ${
+                  paymentMode === 'Partial'
+                    ? 'bg-amber-100 text-amber-900 border-amber-500 ring-1 ring-amber-500'
+                    : 'bg-[#FAF7F2] text-[#44403C] border-[#E8DFC8] hover:bg-amber-50/50'
+                }`}
+              >
+                <Clock className="w-4 h-4 text-amber-700" />
+                Partial / Due
               </button>
             </div>
 
@@ -614,28 +685,139 @@ export default function PosBillingPage() {
                 )}
               </div>
             )}
+
+            {/* Partial / Due Payment Configurator */}
+            {paymentMode === 'Partial' && (
+              <div className="mt-3 p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-3 text-xs">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-amber-900 font-extrabold text-[11px]">Advance / Partial Paid Now:</span>
+                    <span className="font-mono font-black text-emerald-700 text-sm">
+                      ₹{Number(partialAmountPaid || 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-stone-500 text-xs">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max={grandTotal}
+                      value={partialAmountPaid || ''}
+                      onChange={(e) => {
+                        const val = Math.max(0, Math.min(grandTotal, Number(e.target.value) || 0));
+                        setPartialAmountPaid(val);
+                      }}
+                      placeholder="Enter amount paid today"
+                      className="w-full pl-6 pr-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-mono font-bold text-stone-900 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* Quick percentage / preset buttons */}
+                  <div className="grid grid-cols-5 gap-1 mt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPartialAmountPaid(0)}
+                      className="px-1.5 py-1 bg-white border border-amber-200 hover:bg-amber-100 rounded text-[10px] font-bold text-stone-700"
+                    >
+                      ₹0 (Full Due)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartialAmountPaid(Math.round(grandTotal * 0.25))}
+                      className="px-1.5 py-1 bg-white border border-amber-200 hover:bg-amber-100 rounded text-[10px] font-bold text-stone-700"
+                    >
+                      25%
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartialAmountPaid(Math.round(grandTotal * 0.5))}
+                      className="px-1.5 py-1 bg-white border border-amber-200 hover:bg-amber-100 rounded text-[10px] font-bold text-stone-700"
+                    >
+                      50%
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartialAmountPaid(Math.round(grandTotal * 0.75))}
+                      className="px-1.5 py-1 bg-white border border-amber-200 hover:bg-amber-100 rounded text-[10px] font-bold text-stone-700"
+                    >
+                      75%
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartialAmountPaid(grandTotal)}
+                      className="px-1.5 py-1 bg-white border border-amber-200 hover:bg-amber-100 rounded text-[10px] font-bold text-stone-700"
+                    >
+                      100%
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-stone-600 block mb-1">Paid Via Mode:</label>
+                    <select
+                      value={partialChannel}
+                      onChange={(e) => setPartialChannel(e.target.value as any)}
+                      className="w-full px-2 py-1.5 bg-white border border-amber-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="Cash">Cash</option>
+                      <option value="UPI">UPI / QR</option>
+                      <option value="Card">Card</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-stone-600 block mb-1">Balance Due Date:</label>
+                    <input
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="w-full px-2 py-1 bg-white border border-amber-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-amber-200 flex justify-between items-center bg-white/70 p-2 rounded-lg">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-extrabold">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Outstanding Due:</span>
+                  </div>
+                  <span className="font-mono font-black text-red-600 text-sm">
+                    ₹{Math.max(0, grandTotal - (Number(partialAmountPaid) || 0)).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
           <div className="space-y-2 pt-2">
-            {paymentMode === 'UPI' && (
+            {(paymentMode === 'UPI' || (paymentMode === 'Partial' && partialChannel === 'UPI')) && (
               <button
                 onClick={() => setIsUpiQrOpen(true)}
                 disabled={cart.length === 0}
                 className="w-full py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-extrabold rounded-xl shadow-xs transition flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <QrCode className="w-4 h-4" />
-                Show Dynamic UPI QR Code (₹{grandTotal})
+                Show Dynamic UPI QR Code (₹{paymentMode === 'Partial' ? partialAmountPaid : grandTotal})
               </button>
             )}
 
             <button
               onClick={() => handleCompleteSale()}
               disabled={cart.length === 0 || isProcessing}
-              className="w-full py-3 bg-[#15803D] hover:bg-[#166534] text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50"
+              className={`w-full py-3 text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50 ${
+                paymentMode === 'Partial' && (grandTotal - (Number(partialAmountPaid) || 0) > 0)
+                  ? 'bg-amber-600 hover:bg-amber-700'
+                  : 'bg-[#15803D] hover:bg-[#166534]'
+              }`}
             >
               <CheckCircle2 className="w-4 h-4" />
-              {isProcessing ? 'Processing Sale...' : `Complete Sale & Print Tax Invoice (₹${grandTotal})`}
+              {isProcessing 
+                ? 'Processing Sale...' 
+                : paymentMode === 'Partial' && (grandTotal - (Number(partialAmountPaid) || 0) > 0)
+                  ? `Complete Partial Sale (Paid: ₹${partialAmountPaid} • Due: ₹${grandTotal - partialAmountPaid})`
+                  : `Complete Sale & Print Tax Invoice (₹${grandTotal})`
+              }
             </button>
           </div>
 

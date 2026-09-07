@@ -19,7 +19,8 @@ export default function ThermalReceipt({ isOpen, onClose, invoice, llpProfile }:
 
   const handleWhatsAppShare = () => {
     const storeTitle = llpProfile?.brandName || llpProfile?.entityName || 'LLP Store';
-    const text = `*Tax Invoice from ${storeTitle}*\nInvoice: ${invoice.invoiceNumber}\nStudent: ${invoice.studentName || 'Student'} (${invoice.studentGrade || ''})\nTotal Amount: ₹${invoice.totalAmount}\nStatus: Paid via ${invoice.paymentMode}\nThank you!`;
+    const dueText = invoice.balanceDue > 0 ? `\nPaid: ₹${invoice.amountPaid}\n*Balance Due: ₹${invoice.balanceDue}*` : '';
+    const text = `*Tax Invoice from ${storeTitle}*\nInvoice: ${invoice.invoiceNumber}\nStudent: ${invoice.studentName || 'Student'} (${invoice.studentGrade || ''})\nTotal Amount: ₹${invoice.totalAmount}${dueText}\nStatus: ${invoice.balanceDue > 0 ? 'Partial Payment' : 'Paid via ' + invoice.paymentMode}\nThank you!`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -150,12 +151,54 @@ export default function ThermalReceipt({ isOpen, onClose, invoice, llpProfile }:
             )}
             <div className="flex justify-between font-black text-sm pt-1 border-t border-[#78716C]/40 text-[#1C1917]">
               <span>GRAND TOTAL:</span>
-              <span>₹{invoice.totalAmount.toFixed(2)}</span>
+              <span>₹{Number(invoice.totalAmount).toFixed(2)}</span>
             </div>
+
+            {/* Partial Payment Breakdown */}
+            {Number(invoice.balanceDue) > 0 ? (
+              <div className="space-y-1 pt-1">
+                <div className="flex justify-between text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                  <span>AMOUNT PAID:</span>
+                  <span className="font-mono">₹{Number(invoice.amountPaid || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-xs font-black text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                  <span>BALANCE DUE:</span>
+                  <span className="font-mono">₹{Number(invoice.balanceDue).toFixed(2)}</span>
+                </div>
+                {invoice.dueDate && (
+                  <div className="flex justify-between text-[10px] text-[#78716C]">
+                    <span>Due Date:</span>
+                    <span className="font-bold text-[#1C1917]">{invoice.dueDate}</span>
+                  </div>
+                )}
+                <div className="text-center py-1 text-[9px] font-black tracking-wider uppercase text-amber-900 bg-amber-100/70 rounded border border-amber-300">
+                  ● PARTIAL PAYMENT RECEIPT (BALANCE DUE)
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                <span>STATUS:</span>
+                <span>FULLY PAID</span>
+              </div>
+            )}
+
             <div className="flex justify-between text-[10px] text-[#78716C]">
               <span>Payment Mode:</span>
               <span className="font-bold text-[#0284C7] uppercase">{invoice.paymentMode}</span>
             </div>
+
+            {/* Payment History Breakdown if multiple installments */}
+            {invoice.paymentHistory && invoice.paymentHistory.length > 1 && (
+              <div className="text-[9px] text-[#78716C] pt-1.5 border-t border-dashed border-[#78716C]/30 space-y-0.5">
+                <div className="font-bold uppercase text-[9px] text-[#44403C]">Payment History:</div>
+                {invoice.paymentHistory.map((h: any, idx: number) => (
+                  <div key={idx} className="flex justify-between">
+                    <span>{new Date(h.date).toLocaleDateString('en-IN')}: ₹{Number(h.amount).toFixed(2)} ({h.paymentMode})</span>
+                    <span className="text-[8px] text-stone-500">{h.note || ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Return Policy & Terms */}
